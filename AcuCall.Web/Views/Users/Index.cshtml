@@ -1,0 +1,162 @@
+﻿@model IEnumerable<User>
+
+<h2>Users</h2>
+
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">Add</a>
+    <input type="hidden" id="routeId" value="" />
+    <a id="editAction" class="btn btn-warning disabled" data-url-prefix="@Url.Action("Edit","Users")" onclick="OnEdit(this);">Edit</a>
+    <a id="deleteAction" class="btn btn-danger disabled" data-url-prefix="@Url.Action("Delete","Users")" data-toggle="modal" data-target="#deleteConfirmationModal">Delete</a>
+</p>
+<table class="table table-hover" id="usersTable">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Username)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.FirstName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.LastName)
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr class="@item.UserId">
+                <td>
+                    <input type="hidden" name="userid" value="@item.UserId" />
+                    @Html.DisplayFor(modelItem => item.Username)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.FirstName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.LastName)
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+<!-- Confirmation Dailog -->
+<div class="modal fade" id="deleteConfirmationModal" tabindex="-1" role="dialog" aria-labelledby="deleteConfirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteConfirmationModalLabel">Confirmation</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete ?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" onclick="Delete();" data-dismiss="modal">Yes</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@section Scripts {
+    <script src="~/lib/signalr/signalr.js"></script>
+    <script>
+        function OnEdit(element) {
+            var baseUrl = $(element).data('url-prefix');
+            console.log(baseUrl);
+            var routeId = $("#routeId").val();
+            if (!isNaN(routeId))
+                window.location = baseUrl + '/' + routeId;
+        }
+
+        function EnableActionButtons() {
+            $("#editAction").removeClass("disabled"),
+                $("#deleteAction").removeClass("disabled");
+        }
+
+        function DisableActionButtons() {
+            $("#editAction").addClass("disabled"),
+                $("#deleteAction").addClass("disabled"),
+                $("#routeId").val("");
+        }
+
+        function Delete() {
+            var routeId = $("#routeId").val();
+            $ajaxOptions = {
+                url: $("#deleteAction").data('url-prefix'),
+                data: {
+                    id: routeId
+                },
+                type: "POST",
+                success: function (response) {
+                    RemoveRecordFromTable(routeId);
+                    DisableActionButtons();
+                },
+                error: function (xhr, status, error) {
+                    if (xhr.responseJSON.message === "NotFound") {
+                        RemoveRecordFromTable(routeId);
+                        DisableActionButtons();
+                    }
+                }
+            };
+
+            $.ajax($ajaxOptions);
+        }
+
+        function RemoveRecordFromTable(routeId) {
+            $("." + routeId).toggle(1);
+            $("." + routeId).remove();
+        }
+
+        function TableRowMarkup(user) {
+            return "<tr class='" + user.userId + "'>" +
+                "<td> <input type='hidden' name='userid' value='" + user.userId + "' />" + user.username + "</td>" +
+                "<td>" + user.firstName + "</td>" +
+                "<td>" + user.lastName + "</td>" +
+                "</tr>";
+        }
+
+        $(function () {
+
+            $('#usersTable').on('click', 'tr', function () {
+                $('.selected').removeClass('selected');
+                $(this).addClass("selected");
+                var routeId = $('input:hidden[name=userid]', this).val();
+                EnableActionButtons(routeId);
+                $("#routeId").val(routeId);
+            });
+
+            const connection = new signalR.HubConnectionBuilder().withUrl("/user").build();
+
+            connection.start().catch(err => console.error(err.toString()));
+
+            connection.on("newUser", (user) => {
+                console.log("Add New User : " + JSON.stringify(user));
+                if (!$(".selected").length > 0) {
+                    var markup = TableRowMarkup(user);
+                    $('tbody').append(markup);
+                }
+            });
+
+            connection.on("updateUser", (user) => {
+                if (!$(".selected").length > 0) {
+                    var markup = TableRowMarkup(user);
+                    $('.' + user.userId).replaceWith(markup);
+                }
+            });
+
+            connection.on("removedUser", (id) => {
+                RemoveRecordFromTable(id);
+                DisableActionButtons();
+            });
+        });
+    </script>
+}

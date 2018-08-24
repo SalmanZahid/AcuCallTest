@@ -1,0 +1,68 @@
+﻿@model IEnumerable<AcuCall.Core.Objects.UserSession>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h2>Reports</h2>
+
+
+<div class="form-group row">
+    <label for="Month" class="col-sm-1 col-form-label">Month</label>
+    <div class="col-sm-3">
+        <select class="form-control" id="month">
+            <option data-month="1" data-year="2018" selected>January 2018</option>
+            <option data-month="2" data-year="2018">Febuary 2018</option>
+            <option data-month="3" data-year="2018">March 2018</option>
+            <option data-month="4" data-year="2018">April 2018</option>
+            <option data-month="5" data-year="2018">May 2018</option>
+            <option data-month="6" data-year="2018">June 2018</option>
+            <option data-month="7" data-year="2018">July 2018</option>
+            <option data-month="8" data-year="2018">August 2018</option>
+            <option data-month="9" data-year="2018">September 2018</option>
+            <option data-month="10" data-year="2018">October 2018</option>
+            <option data-month="11" data-year="2018">November 2018</option>
+            <option data-month="12" data-year="2018">December 2018</option>
+        </select>       
+    </div>
+</div>
+
+<div id="report">
+</div>
+
+@section Scripts {
+    <script type="text/javascript">
+        function LoadReport(month, year) {
+            $ajaxOptions = {
+                url: '/Reports/GetReport',
+                type: 'GET',
+                data: { month: month, year: year },
+                success: function (response) {
+                    $("#report").html(response);
+                },
+                error: function (err) {
+                    console.log("ERROR: " + err);
+                }
+            };
+
+            $.ajax($ajaxOptions);
+        }
+
+
+        $(function () {
+            var selectedOption = $("#month :selected");
+            var getSelectedMonth = selectedOption.data("month");
+            var getSelectedYear = selectedOption.data("year");
+            LoadReport(getSelectedMonth, getSelectedYear);
+            console.log(getSelectedMonth, getSelectedYear);
+
+            $("#month").change(function () {
+
+                var month = $(this).find(":selected").data("month");
+                var year = $(this).find(":selected").data("year");
+                console.log(month, year);
+                LoadReport(month, year);
+            });
+        });
+    </script>
+}

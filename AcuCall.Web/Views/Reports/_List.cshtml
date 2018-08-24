@@ -1,0 +1,21 @@
+﻿@model IEnumerable<Report>
+
+<div class="row">
+    <div class="col-md-6">
+        <table class="table table-bordered table-responsive">
+            <thead>
+                <tr>
+                    <th>Week</th>
+                    <th>Max Users</th>
+                </tr>
+            </thead>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Date.ToShortDateString()</td>
+                    <td>@item.MaxUsers</td>
+                </tr>
+            }
+        </table>
+    </div>
+</div>
