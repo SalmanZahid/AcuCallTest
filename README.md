@@ -59,7 +59,7 @@ If the IIS installation requires a restart, restart the system.
 Deploy the app to the folder created on the hosting system by following below steps.
 
 1. Right-click the project AcuCall.Web and select Publish.
-2. When `Folder` is selected, specify a folder path to store the published assets. The default folder is `bin\Release\PublishOutput`. Click the Publish button to finish.
+2. When `Folder` is selected, specify a folder path to store the published assets. The default folder is `bin\Release\PublishOutput` but we need to set the path of **Physical Path** while creating new website in **IIS Manager**. Click the Publish button to finish.
 ![capture](https://user-images.githubusercontent.com/8514899/44598215-b162de80-a7eb-11e8-9a91-0add87e88060.PNG)
 
 
