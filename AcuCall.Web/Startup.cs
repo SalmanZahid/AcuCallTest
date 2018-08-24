@@ -30,13 +30,16 @@ namespace AcuCall.Web
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.Configure<IISOptions>(options =>
+            {
+                options.ForwardClientCertificate = false;
+            });
+
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
                        {
                            options.LoginPath = "/Account/Login/";
                        });
-
-
 
             services.AddMvc();
 
